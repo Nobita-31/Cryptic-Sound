@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Decode Audio</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #121212;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        background: #1e1e1e;
+        padding: 20px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+      }
+
+      input,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+      }
+
+      input {
+        background: #2a2a2a;
+        color: white;
+      }
+
+      button {
+        background: #ff6b6b;
+        color: white;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        background: #555;
+        cursor: not-allowed;
+      }
+
+      audio {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          width: 100%;
+          padding: 15px;
+        }
+
+        h1 {
+          font-size: 1.2rem;
+        }
+
+        button,
+        input {
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Decode Audio</h1>
+      <input type="file" id="decodeImageInput" accept="image/*" />
+      <button id="playAudioButton" disabled>Play Audio</button>
+      <button id="downloadAudioButton" disabled>Download Audio</button>
+      <audio id="audioPlayer" controls></audio>
+    </div>
+
+    <script>
+      document
+        .getElementById("decodeImageInput")
+        .addEventListener("change", async (e) => {
+          const file = e.target.files[0];
+          const img = new Image();
+          img.src = URL.createObjectURL(file);
+
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const audioBuffer = decodeImageToAudioLSB(imgData.data);
+
+            if (!audioBuffer || audioBuffer.length === 0) {
+              alert("No hidden audio data found in the image.");
+              return;
+            }
+
+            const audioBlob = new Blob([audioBuffer], { type: "audio/wav" });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audioPlayer = document.getElementById("audioPlayer");
+
+            audioPlayer.src = audioUrl;
+            document.getElementById("playAudioButton").disabled = false;
+            document.getElementById("downloadAudioButton").disabled = false;
+
+            document.getElementById("downloadAudioButton").onclick = () => {
+              const downloadLink = document.createElement("a");
+              downloadLink.href = audioUrl;
+              downloadLink.download = "decoded_audio.wav";
+              downloadLink.click();
+            };
+          };
+        });
+
+      function decodeImageToAudioLSB(data) {
+        let audioLength = 0;
+        for (let i = 0; i < 24; i++) {
+          const bit = data[i] & 1;
+          audioLength = (audioLength << 1) | bit;
+        }
+
+        if (audioLength === 0 || audioLength > data.length / 8) {
+          return null; // No valid audio data found
+        }
+
+        const audioData = new Uint8Array(audioLength);
+        let audioIndex = 0;
+        let bitIndex = 0;
+        let currentByte = 0;
+
+        for (let i = 32; audioIndex < audioLength && i < data.length; i++) {
+          const bit = data[i] & 1;
+          currentByte = (currentByte << 1) | bit;
+          bitIndex++;
+
+          if (bitIndex === 8) {
+            audioData[audioIndex++] = currentByte;
+            currentByte = 0;
+            bitIndex = 0;
+          }
+        }
+
+        return audioData;
+      }
+    </script>
+  </body>
+</html>

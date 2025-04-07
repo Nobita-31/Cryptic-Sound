@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encode with Self-Destruction</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Schoolbell&display=swap');
+
+        /* Base Notebook Styles */
+        :root {
+            --paper-color: #f5f5f0;
+            --paper-line: #cfcece;
+            --ink-color: #333;
+            --red-ink: #c00;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --margin-color: #f0e6cc;
+            --coffee-stain: #d2b48c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #e0d6c2;
+            background-image: 
+                linear-gradient(90deg, #e0d6c2 0%, #d8c9a8 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            /* font-family: 'Courier New', monospace; */
+            font-family: 'Schoolbell', cursive; 
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Paper Texture Effects */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 40px 30px 50px;
+            background-color: var(--paper-color);
+            background-image: 
+                linear-gradient(var(--paper-line) 1px, transparent 1px);
+            background-size: 100% 28px;
+            position: relative;
+            box-shadow: 
+                0 2px 15px var(--shadow-color),
+                0 10px 30px var(--shadow-color),
+                inset 0 0 50px rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-top: 1px solid rgba(255,255,255,0.3);
+            transform: perspective(1000px) rotateX(0deg);
+            /* animation: paperDrop 1s ease-out; */
+            overflow: hidden;
+        }
+
+        /* Left Margin Line */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 40px;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--margin-color);
+            border-right: 1px solid #d9d0b5;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        /* Paper Shine Effect */
+        .container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                rgba(255,255,255,0.2) 15%,
+                transparent 30%,
+                rgba(0,0,0,0.03) 50%,
+                transparent 70%,
+                rgba(255,255,255,0.1) 85%,
+                transparent 100%
+            );
+            pointer-events: none;
+        }
+
+        /* Title Styling */
+        h1 {
+            color: var(--ink-color);
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--paper-line);
+            font-weight: bold;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+            position: relative;
+            transform: rotate(-1deg);
+            animation: titleWrite 1.5s ease-out forwards;
+            text-align: center;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            color: var(--red-ink);
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        /* Input Group Styling */
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+            animation: fadeIn 1s ease-out 0.3s both;
+        }
+
+        /* File Input Customization */
+        .file-input-wrapper {
+            margin-bottom: 25px;
+            position: relative;
+            animation: fadeIn 1s ease-out 0.3s both;
+        }
+
+        .file-input-label {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            background-color: var(--paper-color);
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            text-align: center;
+            font-size: clamp(0.9rem, 4vw, 1.1rem);
+            color: var(--ink-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .file-input-label:hover {
+            background-color: #f0f0e0;
+            border-color: #aaa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .file-input-label::before {
+            content: '📄 ';
+            margin-right: 8px;
+        }
+
+        #imageInput {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* Time Picker Styling */
+        #timePicker {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 25px;
+            background-color: var(--paper-color);
+            border: 1px solid #d0d0c0;
+            border-radius: 4px;
+            /* font-family: 'Courier New', monospace; */
+            font-family: 'Schoolbell', cursive; 
+            font-size: clamp(0.9rem, 4vw, 1rem);
+            color: var(--ink-color);
+            box-shadow: 
+                inset 0 1px 3px rgba(0,0,0,0.1),
+                0 2px 5px rgba(0,0,0,0.05);
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        /* Button Styling */
+        .button-group {
+            display: flex;
+            /* justify-content : center; */
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: var(--paper-color);
+            border: 1px solid #d0d0c0;
+            border-radius: 3px;
+            min-width: 300px;
+            border-radius: 26px;
+            /* font-family: 'Courier New', monospace; */
+            font-family: 'Schoolbell', cursive; 
+            letter-spacing: 2px;
+            font-size: clamp(0.95rem, 4vw, 1.1rem);
+            color: var(--ink-color);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 
+                0 3px 10px rgba(0,0,0,0.5),
+                inset 0 -2px 5px rgba(0,0,0,0.05);
+            transform-style: preserve-3d;
+            animation: fadeIn 1s ease-out 0.9s both;
+        }
+
+        button:hover {
+            background-color: #f0f0e0;
+            transform: translateY(-2px) rotate(0.5deg);
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.1),
+                inset 0 -2px 5px rgba(0,0,0,0.05);
+        }
+
+        button:disabled {
+            opacity: 0.6;    
+            cursor: not-allowed;
+            box-shadow: none;
+            color: grey;
+            transform: none !important;
+        }
+
+        button:not(:disabled):active {
+            transform: translateY(1px);
+        }
+
+        #startRecordingButton {
+            background-color: #fddce1;
+            border-color: #f39999;
+        }
+
+        #stopRecordingButton {
+            background-color: #e8f5e9;
+            border-color: #a5d6a7;
+        }
+
+        #encodeAudioButton {
+            background-color: #e3f2fd;
+            border-color: #90caf9;
+            font-weight: bold;
+        }
+
+        #downloadButton {
+            background-color: #fff8e1;
+            border-color: #ffe082;
+        }
+
+       
+        /* Animations */
+        @keyframes paperDrop {
+            0% {
+                transform: perspective(1000px) rotateX(60deg) translateY(-100px);
+                opacity: 0;
+                box-shadow: 0 50px 100px rgba(0,0,0,0.3);
+            }
+            100% {
+                transform: perspective(1000px) rotateX(0deg) translateY(0);
+                opacity: 1;
+                box-shadow: 0 2px 15px var(--shadow-color);
+            }
+        }
+
+        @keyframes titleWrite {
+            0% {
+                clip-path: inset(0 100% 0 0);
+            }
+            100% {
+                clip-path: inset(0 0 0 0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes paperCrumple {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-2px) rotate(0.5deg); }
+            50% { transform: translateY(0) rotate(-0.5deg); }
+            75% { transform: translateY(1px) rotate(0.3deg); }
+        }
+
+        .container:hover {
+            animation: paperCrumple 4s ease-in-out infinite;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px 40px;
+                background-size: 100% 24px;
+            }
+            
+            h1 {
+                font-size: clamp(1.6rem, 6vw, 2rem);
+                margin-bottom: 25px;
+            }
+            
+            .file-input-label {
+                padding: 10px 15px;
+            }
+            
+            button {
+                padding: 10px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px 15px 35px;
+                background-size: 100% 20px;
+            }
+            
+            h1 {
+                font-size: clamp(1.4rem, 6vw, 1.8rem);
+            }
+            
+            .container::before {
+                left: 30px;
+            }
+            
+            .button-group {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .container {
+                padding: 20px 15px 30px;
+            }
+            
+            .file-input-label::before {
+                margin-right: 5px;
+            }
+            
+            #timePicker {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Encode with Self-Destruction</h1>
+        
+        <div class="button-group">
+            <button id="startRecordingButton">Start Recording</button>
+            <button id="stopRecordingButton" disabled>Stop Recording</button>
+        </div>
+        
+        <div class="file-input-wrapper">
+            <input type="file" id="imageInput" accept="image/*" />
+            <label for="imageInput" id="imageInputLabel" class="file-input-label">Select Cover Image</label>
+        </div>
+        
+        <input type="datetime-local" id="timePicker" />
+        
+        <div class="button-group">
+            <button id="encodeAudioButton" disabled>Self-Destructive Encode</button>
+            <button id="downloadButton" disabled>Download Encoded Image</button>
+        </div>
+        
+        <!-- <div class="ink-blot"></div>
+        <div class="ink-blot"></div>
+        <div class="coffee-stain"></div>
+        <div class="coffee-stain"></div> -->
+    </div>
+
+    <script>
+        // Basic functionality to enable/disable buttons
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const encodeBtn = document.getElementById('encodeAudioButton');
+            const downloadBtn = document.getElementById('downloadButton');
+            const hasFile = e.target.files.length > 0;
+            const fileName = e.target.files[0].name;
+            const imageLabel = document.getElementById("imageInputLabel");
+            imageLabel.innerText = fileName;
+            // encodeBtn.disabled = !hasFile;
+            // downloadBtn.disabled = !hasFile;
+        });
+
+        // Recording button toggle
+        const startBtn = document.getElementById('startRecordingButton');
+        const stopBtn = document.getElementById('stopRecordingButton');
+        
+        startBtn.addEventListener('click', function() {
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            // Add actual recording start logic here
+        });
+        
+        stopBtn.addEventListener('click', function() {
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            // Add actual recording stop logic here
+        });
+
+      let audioChunks = [];
+      let recorder;
+      let audioData;
+      let encodedImageBlob;
+
+      document.getElementById("startRecordingButton").onclick = () => {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+          recorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          recorder.ondataavailable = (e) => audioChunks.push(e.data);
+
+          recorder.onstop = async () => {
+            // console.log(audioChunks);
+            const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+            audioData = new Uint8Array(await audioBlob.arrayBuffer());
+            // document.getElementById("encodeAudioButton").disabled = false;
+          };
+
+          recorder.start();
+          document.getElementById("stopRecordingButton").disabled = false;
+        });
+      };
+
+      document.getElementById("stopRecordingButton").onclick = () => {
+        recorder.stop();
+        document.getElementById("stopRecordingButton").disabled = true;
+      };
+
+      document.getElementById("timePicker").addEventListener('change', ()=>{
+        document.getElementById("encodeAudioButton").disabled = false;
+        document.getElementById("downloadButton").disabled = false;
+      })
+
+      document.getElementById("encodeAudioButton").onclick = () => {
+        const imageFile = document.getElementById("imageInput").files[0];
+        const destructionTime = document.getElementById("timePicker").value;
+
+        if (!imageFile || !destructionTime) {
+          alert("Please select an image and set a self-destruction time.");
+          return;
+        }
+
+        const img = new Image();
+        img.src = URL.createObjectURL(imageFile);
+
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          encodeAudioWithTimer(imgData.data, audioData, destructionTime);
+          ctx.putImageData(imgData, 0, 0);
+
+          canvas.toBlob((blob) => {
+            encodedImageBlob = blob;
+            document.getElementById("downloadButton").disabled = false;
+          }, "image/png");
+        };
+      };
+
+      document.getElementById("downloadButton").onclick = () => {
+        if (encodedImageBlob) {
+          const downloadLink = document.createElement("a");
+          downloadLink.href = URL.createObjectURL(encodedImageBlob);
+          downloadLink.download = "self_destruct_image.png";
+          downloadLink.click();
+        }
+      };
+
+      function encodeAudioWithTimer(imageData, audioData, destructionTime) {
+        const timestamp = Math.floor(
+          new Date(destructionTime).getTime() / 1000
+        ); // Convert to seconds
+        if (isNaN(timestamp)) {
+          alert("Invalid timestamp");
+          return;
+        }
+
+        // Store the timestamp in the first 64 bits (8 pixels, RGBA)
+        for (let i = 0; i < 64; i++) {
+          const bit = (timestamp >> (63 - i)) & 1;
+          imageData[i * 4] = (imageData[i * 4] & 0xfe) | bit; // Modify only R channel
+        }
+
+        let audioIndex = 0;
+        let bitIndex = 0;
+
+        for (
+          let i = 256;
+          audioIndex < audioData.length && i < imageData.length;
+          i += 4
+        ) {
+          // Start from pixel 64
+          const bit = (audioData[audioIndex] >> (7 - bitIndex)) & 1;
+          imageData[i] = (imageData[i] & 0xfe) | bit;
+
+          bitIndex++;
+          if (bitIndex === 8) {
+            audioIndex++;
+            bitIndex = 0;
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

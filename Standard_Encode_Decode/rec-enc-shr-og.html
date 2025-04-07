@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Record Audio & Encode</title>
+    <!-- <link rel="stylesheet" href="css/page.css"> -->
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Encode Audio into Image</h1>
+      <button id="startRecordingButton">Start Recording</button>
+      <button id="stopRecordingButton" disabled>Stop Recording</button>
+      <p id="pixelRequirement"></p>
+      <input type="file" id="imageInput" accept="image/*" />
+      <button id="encodeAudioButton" disabled>Encode Image</button>
+      <button id="downloadButton" disabled>Download Encoded Image</button>
+      <button id="shareButton" disabled>Share Encoded Image</button>
+      <canvas id="canvas" style="display: none"></canvas>
+      
+    </div>
+
+    <script>
+      let audioChunks = [];
+      let recorder;
+      let audioData;
+      let encodedImageBlob;
+      let requiredPixels = 0;
+
+      document.getElementById("startRecordingButton").onclick = () => {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+          recorder = new MediaRecorder(stream);
+          audioChunks = [];
+          recorder.ondataavailable = (e) => audioChunks.push(e.data);
+
+          recorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(audioBlob);
+            reader.onloadend = () => {
+              audioData = new Uint8Array(reader.result);
+              requiredPixels = audioData.length * 8; // Each byte needs 8 pixels (LSB in R, G, or B)
+              document.getElementById(
+                "pixelRequirement"
+              ).innerText = `Required Pixels: ${requiredPixels}`;
+
+              //   console.log("Audio length (bytes):", audioData.length); // Debugging
+              document.getElementById("encodeAudioButton").disabled = false;
+            };
+          };
+
+          recorder.start();
+          document.getElementById("stopRecordingButton").disabled = false;
+        });
+      };
+
+      document.getElementById("stopRecordingButton").onclick = () => {
+        recorder.stop();
+        document.getElementById("stopRecordingButton").disabled = true;
+      };
+
+      document.getElementById("encodeAudioButton").onclick = () => {
+        const imageFile = document.getElementById("imageInput").files[0];
+        if (!imageFile) {
+          alert("Please select an image file first.");
+          return;
+        }
+
+        const img = new Image();
+        img.src = URL.createObjectURL(imageFile);
+
+        img.onload = () => {
+          const canvas = document.getElementById("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const availablePixels = img.width * img.height * 3; // 3 channels (RGB)
+
+          if (availablePixels < requiredPixels) {
+            alert(
+              "The selected image does not have enough pixels to encode the audio."
+            );
+            return;
+          }
+
+          encodeAudioIntoImageLSB(imgData.data, audioData);
+          ctx.putImageData(imgData, 0, 0);
+          canvas.toBlob((blob) => {
+            encodedImageBlob = blob;
+            document.getElementById("downloadButton").disabled = false;
+            document.getElementById("shareButton").disabled = false;
+          }, "image/png");
+        };
+      };
+
+      document.getElementById("downloadButton").onclick = () => {
+        if (encodedImageBlob) {
+          const downloadLink = document.createElement("a");
+          downloadLink.href = URL.createObjectURL(encodedImageBlob);
+          downloadLink.download = "encoded_image.png";
+          downloadLink.click();
+        } else {
+          alert("No encoded image available. Please encode an image first.");
+        }
+      };
+
+      document.getElementById("shareButton").onclick = () => {
+        if (encodedImageBlob) {
+          const file = new File([encodedImageBlob], "encoded_image.png", {
+            type: "image/png",
+          });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator
+              .share({
+                files: [file],
+                title: "Encoded Audio Image",
+                text: "Check out this image with encoded audio data!",
+              })
+              .then(() => {
+                console.log("Image shared successfully");
+              })
+              .catch((error) => {
+                console.log("Error sharing: ", error);
+              });
+          } else {
+            alert("Sharing is not supported on this device or browser.");
+          }
+        } else {
+          alert("No encoded image available. Please encode an image first.");
+        }
+      };
+
+      function encodeAudioIntoImageLSB(imageData, audioData) {
+        for (let i = 0; i < 24; i++) {
+          const bytePos = Math.floor(i / 8);
+          const bitPos = i % 8;
+          imageData[i] =
+            (imageData[i] & 0xfe) |
+            ((audioData.length >> ((2 - bytePos) * 8 + (7 - bitPos))) & 1);
+        }
+
+        let audioIndex = 0;
+        let bitIndex = 0;
+        for (
+          let i = 32;
+          audioIndex < audioData.length && i < imageData.length;
+          i++
+        ) {
+          const bit = (audioData[audioIndex] >> (7 - bitIndex)) & 1;
+          imageData[i] = (imageData[i] & 0xfe) | bit;
+
+          bitIndex++;
+          if (bitIndex === 8) {
+            audioIndex++;
+            bitIndex = 0;
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

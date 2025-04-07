@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decode Audio with PIN</title>
+    <style>
+        /* Base Styles */
+        :root {
+            --neon-blue: #0ff0fc;
+            --neon-pink: #ff2a6d;
+            --neon-purple: #d300c5;
+            --dark-bg: #0d0221;
+            --panel-bg: rgba(15, 5, 45, 0.9);
+            --glow: 0 0 10px;
+            --text-light: rgba(255, 255, 255, 0.9);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--dark-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            color: var(--text-light);
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Create grid texture without external assets */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+
+        /* Main Container */
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            background: var(--panel-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            box-shadow: 
+                0 0 20px rgba(0, 255, 252, 0.2),
+                inset 0 0 15px rgba(0, 255, 252, 0.1);
+            position: relative;
+            overflow: hidden;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border: 2px solid transparent;
+            border-image: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+            border-image-slice: 1;
+            z-index: -1;
+            filter: blur(5px);
+            animation: borderPulse 4s linear infinite;
+        }
+
+        /* Typography */
+        h1 {
+            text-align: center;
+            font-size: clamp(1.5rem, 6vw, 2.2rem);
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--neon-blue);
+            text-shadow: 
+                0 0 5px var(--neon-blue),
+                0 0 15px var(--neon-blue);
+            position: relative;
+            font-weight: bold;
+        }
+
+        /* File Input */
+        .file-input-wrapper {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .file-input-label {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0,0,0,0.4);
+            border: 1px dashed rgba(255,255,255,0.3);
+            border-radius: 4px;
+            text-align: center;
+            font-size: clamp(0.9rem, 4vw, 1rem);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .file-input-label:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 255, 252, 0.3);
+        }
+
+        .file-input-label::before {
+            content: '📁 ';
+            margin-right: 8px;
+        }
+
+        #decodeImageInput {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* Button Group */
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, var(--neon-purple), var(--neon-pink));
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(0.95rem, 4vw, 1.1rem);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(255, 42, 109, 0.3);
+        }
+
+        button:disabled {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        button:not(:disabled):hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(255, 42, 109, 0.5);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        button:not(:disabled):hover::before {
+            left: 100%;
+        }
+
+        /* Audio Player */
+        #audioPlayer {
+            width: 100%;
+            margin-top: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes borderPulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px 20px;
+                border-radius: 6px;
+            }
+
+            h1 {
+                margin-bottom: 20px;
+                letter-spacing: 1px;
+            }
+
+            .file-input-label {
+                padding: 10px 12px;
+            }
+
+            .button-group {
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            button {
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .file-input-label::before {
+                margin-right: 5px;
+            }
+        }
+
+        /* Very small screens (e.g. iPhone 5/SE) */
+        @media (max-width: 320px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 18px 12px;
+            }
+
+            .button-group {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Decode Audio with PIN</h1>
+        
+        <div class="file-input-wrapper">
+            <input type="file" id="decodeImageInput" accept="image/*" />
+            <label for="decodeImageInput" id="file-label" class="file-input-label">
+                Select Encoded Image
+            </label>
+        </div>
+        
+        <div class="button-group">
+            <button id="playAudioButton" disabled>Play Audio</button>
+            <button id="downloadAudioButton" disabled>Download Audio</button>
+        </div>
+        
+        <audio id="audioPlayer" controls></audio>
+    </div>
+
+    <script>
+        document
+          .getElementById("decodeImageInput")
+          .addEventListener("change", async (e) => {
+            const file = e.target.files[0];
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+  
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0);
+  
+              const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const isPinProtected = (imgData.data[0] & 1) === 1;
+  
+              if (!isPinProtected) {
+                alert("This image is not PIN protected.");
+                return;
+              }
+  
+              const pin = prompt("Enter PIN to decode the audio:");
+              if (!pin) return;
+  
+              const audioBuffer = extractAudioWithPin(imgData.data, pin);
+  
+              if (!audioBuffer) {
+                alert("Incorrect PIN or no valid audio data found.");
+                return;
+              }
+  
+              const audioBlob = new Blob([audioBuffer], { type: "audio/wav" });
+              const audioUrl = URL.createObjectURL(audioBlob);
+              const audioPlayer = document.getElementById("audioPlayer");
+  
+              audioPlayer.src = audioUrl;
+              document.getElementById("playAudioButton").disabled = false;
+              document.getElementById("downloadAudioButton").disabled = false;
+  
+              document.getElementById("downloadAudioButton").onclick = () => {
+                const downloadLink = document.createElement("a");
+                downloadLink.href = audioUrl;
+                downloadLink.download = "decoded_audio.wav";
+                downloadLink.click();
+              };
+            };
+          });
+  
+        function extractAudioWithPin(data, pin) {
+          let extractedPinHash = 0;
+          for (let i = 0; i < 8; i++) {
+            extractedPinHash = (extractedPinHash << 1) | (data[i + 1] & 1);
+          }
+  
+          if (extractedPinHash !== hashPin(pin)) {
+            return null; // Wrong PIN
+          }
+  
+          let audioLength = 0;
+          for (let i = 0; i < 24; i++) {
+            audioLength = (audioLength << 1) | (data[i + 9] & 1);
+          }
+  
+          if (audioLength === 0 || audioLength > data.length / 8) {
+            return null; // No valid audio
+          }
+  
+          const audioData = new Uint8Array(audioLength);
+          let audioIndex = 0;
+          let bitIndex = 0;
+          let currentByte = 0;
+  
+          for (let i = 33; audioIndex < audioLength && i < data.length; i++) {
+            const bit = data[i] & 1;
+            currentByte = (currentByte << 1) | bit;
+            bitIndex++;
+  
+            if (bitIndex === 8) {
+              audioData[audioIndex++] = currentByte;
+              currentByte = 0;
+              bitIndex = 0;
+            }
+          }
+  
+          return audioData;
+        }
+  
+        function hashPin(pin) {
+          let hash = 0;
+          for (let i = 0; i < pin.length; i++) {
+            hash = (hash * 31 + pin.charCodeAt(i)) & 0xff;
+          }
+          return hash;
+        }
+      </script>
+
+    <!-- <script>
+      
+      document
+  .getElementById("decodeImageInput")
+  .addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    const fileLabel = document.getElementById("file-label");
+    const img = new Image();
+    fileLabel.innerText = file.name;
+    img.src = URL.createObjectURL(file);
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const isPinProtected = (imgData.data[0] & 0xFC) === 2; // 2-bit identifier
+
+      if (!isPinProtected) {
+        alert("This image is not PIN protected.");
+        return;
+      }
+
+      const pin = prompt("Enter PIN to decode the audio:");
+      if (!pin) return;
+
+      const audioBuffer = extractAudioWithPin(imgData.data, pin);
+
+      if (!audioBuffer) {
+        alert("Incorrect PIN or no valid audio data found.");
+        return;
+      }
+
+      const audioBlob = new Blob([audioBuffer], { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audioPlayer = document.getElementById("audioPlayer");
+
+      audioPlayer.src = audioUrl;
+      document.getElementById("playAudioButton").disabled = false;
+      document.getElementById("downloadAudioButton").disabled = false;
+
+      document.getElementById("downloadAudioButton").onclick = () => {
+        const downloadLink = document.createElement("a");
+        downloadLink.href = audioUrl;
+        downloadLink.download = "decoded_audio.wav";
+        downloadLink.click();
+      };
+    };
+  });
+
+document.getElementById('decodeImageInput').addEventListener('change', function(e) {
+    const buttons = document.querySelectorAll('button');
+    if (e.target.files.length > 0) {
+        buttons.forEach(btn => btn.disabled = false);
+    } else {
+        buttons.forEach(btn => btn.disabled = true);
+    }
+});
+
+function extractAudioWithPin(data, pin) {
+    let extractedPinHash = 0;
+    for (let i = 0; i < 8; i++) {
+        extractedPinHash = (extractedPinHash << 2) | (data[i + 1] & 3); // Extract 2-bit pairs
+    }
+
+    if (extractedPinHash !== hashPin(pin)) {
+        return null; // Wrong PIN
+    }
+
+    let audioLength = 0;
+    for (let i = 0; i < 24; i += 2) {
+        audioLength = (audioLength << 2) | (data[i + 9] & 3); // Extract 2-bit pairs
+    }
+
+    if (audioLength === 0 || audioLength > data.length / 4) {
+        return null; // No valid audio
+    }
+
+    const audioData = new Uint8Array(audioLength);
+    let audioIndex = 0;
+    let bitIndex = 0;
+    let currentByte = 0;
+
+    for (let i = 33; audioIndex < audioLength && i < data.length; i++) {
+        const bit = data[i] & 3; // Extract 2 bits
+        currentByte = (currentByte << 2) | bit;
+        bitIndex += 2;
+
+        if (bitIndex === 8) {
+            audioData[audioIndex++] = currentByte;
+            currentByte = 0;
+            bitIndex = 0;
+        }
+    }
+
+    return audioData;
+}
+
+function hashPin(pin) {
+    let hash = 0;
+    for (let i = 0; i < pin.length; i++) {
+        hash = (hash * 31 + pin.charCodeAt(i)) & 0xff;
+    }
+    return hash;
+}
+
+    </script> -->
+  </body>
+</html>

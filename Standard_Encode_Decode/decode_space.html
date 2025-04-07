@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cosmic Audio Decoder</title>
+    <style>
+      /* Deep Space Color Palette */
+      :root {
+        --void-black: #020207;
+        --cosmic-dark: #0a0a15;
+        --nebula-blue: #0066ff;
+        --quasar-purple: #7d00ff;
+        --pulsar-green: #00ffaa;
+        --star-white: rgba(255, 255, 255, 0.9);
+        --dust-glow: rgba(0, 102, 255, 0.15);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+
+        background-color: #000;
+      }
+
+      /* Animated cosmic dust */
+      body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(
+            circle at 20% 30%,
+            transparent 0%,
+            var(--dust-glow) 0.5%,
+            transparent 1%
+          ),
+          radial-gradient(
+            circle at 40% 70%,
+            transparent 0%,
+            var(--dust-glow) 0.5%,
+            transparent 1%
+          ),
+          radial-gradient(
+            circle at 60% 20%,
+            transparent 0%,
+            var(--dust-glow) 0.5%,
+            transparent 1%
+          ),
+          radial-gradient(
+            circle at 80% 50%,
+            transparent 0%,
+            var(--dust-glow) 0.5%,
+            transparent 1%
+          );
+        animation: cosmicDrift 6s linear infinite;
+      }
+      
+      /* Black Hole Console */
+      .container {
+        width: 95%;
+        max-width: 600px;
+        padding: 30px;
+        background: rgba(10, 10, 21, 0.85);
+        border: 1px solid var(--nebula-blue);
+        border-radius: 8px;
+        box-shadow: 0 0 30px rgba(0, 102, 255, 0.2),
+          inset 0 0 30px rgba(0, 102, 255, 0.1);
+        position: relative;
+        z-index: 50;
+        backdrop-filter: blur(8px);
+        transform: perspective(1000px) rotateX(5deg);
+        animation: cosmicFloat 12s ease-in-out infinite;
+        overflow: hidden;
+      }
+
+      /* Event Horizon Effect */
+      .container::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border-radius: 12px;
+        background: linear-gradient(
+          45deg,
+          var(--quasar-purple),
+          var(--nebula-blue),
+          var(--pulsar-green)
+        );
+        z-index: -1;
+        filter: blur(20px);
+        opacity: 0.3;
+        animation: cosmicPulse 8s linear infinite;
+      }
+
+      /* Title Styling */
+      h1 {
+        text-align: center;
+        font-size: clamp(1.8rem, 6vw, 2.5rem);
+        margin-bottom: 30px;
+        letter-spacing: 4px;
+        color: var(--pulsar-green);
+        text-shadow: 0 0 8px var(--pulsar-green), 0 0 16px var(--pulsar-green);
+        position: relative;
+        font-weight: bold;
+      }
+
+      h1::after {
+        content: "";
+        position: absolute;
+        bottom: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 150px;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--nebula-blue),
+          var(--pulsar-green),
+          transparent
+        );
+      }
+
+      /* File Input Styling */
+      .file-input-wrapper {
+        margin-bottom: 30px;
+        position: relative;
+      }
+
+      .file-input-label {
+        display: block;
+        width: 100%;
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--nebula-blue);
+        border-radius: 6px;
+        text-align: center;
+        font-size: clamp(0.9rem, 4vw, 1.1rem);
+        color: var(--star-white);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .file-input-label:hover {
+        background: rgba(0, 0, 0, 0.6);
+        border-color: var(--pulsar-green);
+        box-shadow: 0 0 20px var(--dust-glow);
+      }
+
+      .file-input-label::before {
+        content: "🌌";
+        margin-right: 10px;
+        filter: drop-shadow(0 0 4px var(--nebula-blue));
+      }
+
+      .file-input-label::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 170, 0.1),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      .file-input-label:hover::after {
+        left: 100%;
+      }
+
+      #decodeImageInput {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      /* Button Styling */
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      button {
+        padding: 16px;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 102, 255, 0.3),
+          rgba(125, 0, 255, 0.3)
+        );
+        border: 1px solid var(--nebula-blue);
+        border-radius: 6px;
+        color: var(--star-white);
+        font-family: "Courier New", monospace;
+        font-size: clamp(1rem, 4vw, 1.2rem);
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 15px rgba(0, 102, 255, 0.3),
+          inset 0 0 10px rgba(0, 102, 255, 0.2);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+        background: rgba(0, 0, 0, 0.3);
+        border-color: rgba(0, 102, 255, 0.5);
+      }
+
+      button:not(:disabled):hover {
+        transform: translateY(-3px);
+        background: linear-gradient(
+          135deg,
+          rgba(0, 102, 255, 0.5),
+          rgba(125, 0, 255, 0.5)
+        );
+        box-shadow: 0 0 25px rgba(0, 102, 255, 0.5),
+          inset 0 0 15px rgba(0, 102, 255, 0.3);
+      }
+
+      button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 170, 0.2),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      button:not(:disabled):hover::before {
+        left: 100%;
+      }
+
+      #playAudioButton {
+        border-color: var(--pulsar-green);
+        box-shadow: 0 0 15px rgba(0, 255, 170, 0.3),
+          inset 0 0 10px rgba(0, 255, 170, 0.2);
+      }
+
+      #playAudioButton:hover {
+        box-shadow: 0 0 25px rgba(0, 255, 170, 0.5),
+          inset 0 0 15px rgba(0, 255, 170, 0.3);
+      }
+
+      /* Audio Player Styling */
+      #audioPlayer {
+        width: 100%;
+        margin-top: 20px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 6px;
+        border: 1px solid var(--nebula-blue);
+        box-shadow: inset 0 0 10px rgba(0, 102, 255, 0.2);
+      }
+
+      /* Animations */
+      @keyframes cosmicDrift {
+        0% {
+          transform: translate(0, 0);
+        }
+        25% {
+          transform: translate(-5px, 5px);
+        }
+        50% {
+          transform: translate(5px, 10px);
+        }
+        75% {
+          transform: translate(10px, 5px);
+        }
+        100% {
+          transform: translate(0, 0);
+        }
+      }
+
+      @keyframes cosmicFloat {
+        0%,
+        100% {
+          transform: perspective(1000px) rotateX(5deg) translateY(0);
+        }
+        50% {
+          transform: perspective(1000px) rotateX(5deg) translateY(-20px);
+        }
+      }
+
+      @keyframes cosmicPulse {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          padding: 25px;
+        }
+
+        h1 {
+          font-size: clamp(1.5rem, 6vw, 2rem);
+          margin-bottom: 25px;
+        }
+
+        .file-input-label,
+        button {
+          padding: 14px;
+        }
+
+        .button-group {
+          gap: 15px;
+          margin-bottom: 25px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          padding: 20px;
+        }
+
+        h1 {
+          letter-spacing: 2px;
+        }
+
+        .file-input-label,
+        button {
+          padding: 12px;
+          font-size: 0.95rem;
+        }
+      }
+      
+    </style>
+  </head>
+  <body>
+    <div class="main"></div>
+    <div class="container">
+      <h1>DECODE AUDIO</h1>
+
+      <div class="file-input-wrapper">
+        <input type="file" id="decodeImageInput" accept="image/*" />
+        <label for="decodeImageInput" class="file-input-label"
+          >SELECT COSMIC FILE</label>
+      </div>
+
+      <div class="button-group">
+        <button id="playAudioButton" disabled>PLAY TRANSMISSION</button>
+        <button id="downloadAudioButton" disabled>DOWNLOAD SIGNAL</button>
+      </div>
+      <button class="btn" type="button">
+        <strong>SPACE</strong>
+        <div id="container-stars">
+          <div id="stars"></div>
+        </div>
+
+        <div id="glow">
+          <div class="circle"></div>
+          <div class="circle"></div>
+        </div>
+      </button>
+      <audio id="audioPlayer" controls></audio>
+    </div>
+
+    <!-- </div> -->
+    <script>
+      document
+        .getElementById("decodeImageInput")
+        .addEventListener("change", function (e) {
+          const buttons = document.querySelectorAll("button");
+          if (e.target.files.length > 0) {
+            buttons.forEach((btn) => (btn.disabled = false));
+          } else {
+            buttons.forEach((btn) => (btn.disabled = true));
+          }
+        });
+      document
+        .getElementById("decodeImageInput")
+        .addEventListener("change", async (e) => {
+          const file = e.target.files[0];
+          const img = new Image();
+          img.src = URL.createObjectURL(file);
+
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const audioBuffer = decodeImageToAudioLSB(imgData.data);
+
+            if (audioBuffer && audioBuffer.length > 0) {
+              const audioBlob = new Blob([audioBuffer], { type: "audio/wav" });
+              const audioUrl = URL.createObjectURL(audioBlob);
+              document.getElementById("audioPlayer").src = audioUrl;
+              document.getElementById("playAudioButton").disabled = false;
+
+              document.getElementById("downloadAudioButton").onclick = () => {
+                const downloadLink = document.createElement("a");
+                downloadLink.href = audioUrl;
+                downloadLink.download = "decoded_audio.wav";
+                downloadLink.click();
+              };
+              document.getElementById("downloadAudioButton").disabled = false;
+            } else {
+              alert("No audio data found in the selected image.");
+              document.getElementById("playAudioButton").disabled = true;
+              document.getElementById("downloadAudioButton").disabled = true;
+              document.getElementById("audioPlayer").src = "";
+            }
+          };
+        });
+
+      function decodeImageToAudioLSB(data) {
+        let audioLength = 0;
+        for (let i = 0; i < 24; i++) {
+          const bit = data[i] & 1;
+          audioLength = (audioLength << 1) | bit;
+        }
+
+        if (audioLength === 0 || audioLength > data.length / 8) {
+          return null; // Invalid data, likely unencoded image
+        }
+
+        const audioData = new Uint8Array(audioLength);
+        let audioIndex = 0;
+        let bitIndex = 0;
+        let currentByte = 0;
+
+        for (let i = 32; audioIndex < audioLength && i < data.length; i++) {
+          const bit = data[i] & 1;
+          currentByte = (currentByte << 1) | bit;
+          bitIndex++;
+
+          if (bitIndex === 8) {
+            audioData[audioIndex++] = currentByte;
+            currentByte = 0;
+            bitIndex = 0;
+          }
+        }
+
+        return audioData;
+      }
+    </script>
+  </body>
+</html>

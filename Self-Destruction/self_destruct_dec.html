@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Self-Destruct Decoding</title>
+    <!-- <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #121212;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        background: #1e1e1e;
+        padding: 20px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+      }
+
+      input,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+      }
+
+      input {
+        background: #2a2a2a;
+        color: white;
+      }
+
+      button {
+        background: #ff6b6b;
+        color: white;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        background: #555;
+        cursor: not-allowed;
+      }
+
+      audio {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          width: 100%;
+          padding: 15px;
+        }
+
+        h1 {
+          font-size: 1.2rem;
+        }
+
+        button,
+        input {
+          font-size: 0.9rem;
+        }
+      }
+    </style> -->
+    <link rel="stylesheet" href="../css/all_pages.css" />
+  </head>
+  <body>
+    <!-- <div class="container">
+      <div class="ink-blot"></div>
+      <h1>Decode Self-Destruct Audio</h1>
+      <input type="file" id="decodeImageInput" class="file-input-label" accept="image/*" />
+      <div class="ink-blot"></div>
+      <button id="playAudioButton" disabled>Play Audio</button>
+      <button id="downloadAudioButton" disabled>Download Audio</button>
+      <audio id="audioPlayer" controls></audio>
+      
+      <div class="ink-blot"></div>
+    </div> -->
+    <!-- <div class="container">
+      <h1>Decode Self-Destruct Audio</h1>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="decodeImageInput" accept="image/*" />
+        <label for="decodeImageInput" class="file-input-label">
+          Choose Image File
+          <span class="file-input-filename" id="fileNameDisplay">No file selected</span>
+        </label>
+      </div>
+    
+      <div class="button-group">
+        <button id="playAudioButton" disabled>Play Audio</button>
+        <button id="downloadAudioButton" disabled>Download Audio</button>
+      </div>
+      
+      <audio id="audioPlayer" controls></audio>
+      
+      <div class="ink-blot"></div>
+      <div class="ink-blot"></div>
+    </div> -->
+    <div class="container">
+      <h1>Decode Self-Destruct Audio</h1>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="decodeImageInput" accept="image/*" />
+        <label for="decodeImageInput" id="file-input-label" class="file-input-label">
+          Choose Image File
+          <!-- <span class="file-input-filename" id="fileNameDisplay">No file selected</span> -->
+        </label>
+      </div>
+    
+      <div class="button-group">
+        <button id="playAudioButton" disabled>Play Audio</button>
+        <button id="downloadAudioButton" disabled>Download Audio</button>
+      </div>
+      
+      <audio id="audioPlayer" controls></audio>
+      
+      <!-- <div class="ink-blot"></div>
+      <div class="ink-blot"></div>
+      <div class="coffee-stain"></div>
+      <div class="coffee-stain"></div> -->
+    </div>
+    <script>
+      document
+        .getElementById("decodeImageInput")
+        .addEventListener("change", async (e) => {
+          const file = e.target.files[0];
+          const fileName = e.target.files[0].name;
+          const img = new Image();
+          img.src = URL.createObjectURL(file);
+
+          document.getElementById("file-input-label").innerText = fileName;
+
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const timestamp = decodeTimestamp(imgData.data);
+            const currentTime = Date.now();
+
+            if (timestamp && timestamp <= currentTime) {
+              alert("This image has self-destructed and cannot be decoded.");
+              return;
+            }
+
+            const audioBuffer = decodeImageToAudio(imgData.data);
+            if (!audioBuffer || audioBuffer.length === 0) {
+              alert("No hidden audio data found.");
+              return;
+            }
+
+            const audioBlob = new Blob([audioBuffer], { type: "audio/wav" });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audioPlayer = document.getElementById("audioPlayer");
+
+            audioPlayer.src = audioUrl;
+            document.getElementById("playAudioButton").disabled = false;
+            document.getElementById("downloadAudioButton").disabled = false;
+
+            document.getElementById("downloadAudioButton").onclick = () => {
+              const downloadLink = document.createElement("a");
+              downloadLink.href = audioUrl;
+              downloadLink.download = "decoded_audio.wav";
+              downloadLink.click();
+            };
+          };
+        });
+
+      function decodeTimestamp(data) {
+        let timestamp = 0;
+        for (let i = 0; i < 64; i++) {
+          const bit = data[i * 4] & 1; // Read only R channel
+          timestamp = (timestamp << 1) | bit;
+        }
+        return timestamp * 1000; // Convert back to milliseconds
+      }
+
+      function decodeImageToAudio(data) {
+        let audioData = [];
+        let audioIndex = 0;
+        let bitIndex = 0;
+        let currentByte = 0;
+
+        for (let i = 256; i < data.length; i += 4) {
+          // Start from pixel 64 (index 256 in raw data)
+          const bit = data[i] & 1; // Extract from the red channel
+          currentByte = (currentByte << 1) | bit;
+          bitIndex++;
+
+          if (bitIndex === 8) {
+            audioData[audioIndex++] = currentByte;
+            currentByte = 0;
+            bitIndex = 0;
+          }
+        }
+
+        return new Uint8Array(audioData);
+      }
+    </script>
+  </body>
+</html>
