@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Audio-Image Steganography</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--light);
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            z-index: 10;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 30%, rgba(108, 92, 231, 0.15), transparent 70%);
+            z-index: -1;
+        }
+
+        .container::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(253, 121, 168, 0.1), transparent 70%);
+            z-index: -1;
+        }
+
+        h1 {
+            margin-bottom: 1.8rem;
+            font-weight: 600;
+            font-size: 1.8rem;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            border-radius: 2px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 14px 20px;
+            margin: 0;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .btn i {
+            margin-right: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-1::before {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+        }
+
+        .btn-2::before {
+            background: linear-gradient(45deg, #0984e3, #74b9ff);
+        }
+
+        .btn-3::before {
+            background: linear-gradient(45deg, var(--danger), #ff7675);
+        }
+
+        .glow {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .glow-1 {
+            background: var(--primary);
+            top: -30px;
+            left: -30px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .glow-2 {
+            background: var(--accent);
+            bottom: -30px;
+            right: -30px;
+            animation: float 10s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0);
+            }
+            50% {
+                transform: translate(10px, 10px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .btn {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        .btn:nth-child(1) {
+            animation: fadeIn 0.5s ease-out 0.2s forwards;
+        }
+
+        .btn:nth-child(2) {
+            animation: fadeIn 0.5s ease-out 0.3s forwards;
+        }
+
+        .btn:nth-child(3) {
+            animation: fadeIn 0.5s ease-out 0.4s forwards;
+        }
+
+        /* Mobile-specific optimizations */
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+                align-items: center;
+                padding-top: 30px;
+            }
+            
+            .container {
+                padding: 1.5rem 1.2rem;
+                border-radius: 14px;
+            }
+            
+            h1 {
+                font-size: 1.6rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .btn {
+                padding: 12px 16px;
+                font-size: 0.9rem;
+                border-radius: 8px;
+            }
+            
+            .btn i {
+                font-size: 0.9rem;
+                margin-right: 6px;
+            }
+            
+            .glow {
+                width: 80px;
+                height: 80px;
+                filter: blur(30px);
+            }
+            
+            .container::after {
+                bottom: -20px;
+                right: -20px;
+                width: 80px;
+                height: 80px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            h1 {
+                font-size: 1.4rem;
+            }
+            
+            .btn {
+                font-size: 0.85rem;
+                padding: 10px 14px;
+            }
+        }
+
+        /* Disable animations for users who prefer reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+            
+            .container, .btn {
+                opacity: 1;
+                transform: none;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    
+    <div class="container">
+        <h1>Audio-Image Steganography</h1>
+        
+        <div class="btn-group">
+            <button class="btn btn-1" onclick="navigateTo('standard_enc_dec_nav.html')">
+                <i class="fas fa-lock"></i> Standard Encode & Decode
+            </button>
+            <button class="btn btn-2" onclick="navigateTo('secret_pin_nav.html')">
+                <i class="fas fa-key"></i> Secret Pin
+            </button>
+            <button class="btn btn-3" onclick="navigateTo('self_destruction_nav.html')">
+                <i class="fas fa-bomb"></i> Self-Destruction
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function navigateTo(page) {
+            // Add a nice transition before navigation
+            document.querySelector('.container').style.transform = 'scale(0.95)';
+            document.querySelector('.container').style.opacity = '0';
+            setTimeout(() => {
+                window.location.href = page;
+            }, 200);
+        }
+
+        // Create floating particles (reduced quantity for mobile)
+        function createParticles() {
+            const colors = ['rgba(108, 92, 231, 0.3)', 'rgba(253, 121, 168, 0.3)', 'rgba(162, 155, 254, 0.3)'];
+            const particleCount = window.innerWidth < 480 ? 8 : 12;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 8 + 4;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.background = color;
+                particle.style.left = `${Math.random() * 100}vw`;
+                particle.style.top = `${Math.random() * 100}vh`;
+                
+                document.body.appendChild(particle);
+                
+                animateParticle(particle);
+            }
+        }
+
+        function animateParticle(particle) {
+            let x = parseFloat(particle.style.left);
+            let y = parseFloat(particle.style.top);
+            const xSpeed = (Math.random() - 0.5) * 0.3;
+            const ySpeed = (Math.random() - 0.5) * 0.3;
+            
+            function move() {
+                x += xSpeed;
+                y += ySpeed;
+                
+                if (x > 100) x = 0;
+                if (x < 0) x = 100;
+                if (y > 100) y = 0;
+                if (y < 0) y = 100;
+                
+                particle.style.left = `${x}vw`;
+                particle.style.top = `${y}vh`;
+                
+                requestAnimationFrame(move);
+            }
+            
+            move();
+        }
+
+        // Initialize particles (only if not on low-performance device)
+        if (!navigator.connection || !navigator.connection.saveData) {
+            window.addEventListener('load', createParticles);
+        }
+
+        // Better touch feedback for mobile
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('touchstart', () => {
+                btn.style.transform = 'translateY(1px) scale(0.98)';
+            });
+            
+            btn.addEventListener('touchend', () => {
+                btn.style.transform = '';
+            });
+        });
+    </script>
+</body>
+</html>
