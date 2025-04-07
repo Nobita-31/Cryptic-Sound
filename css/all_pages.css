@@ -1,0 +1,341 @@
+/* css/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Schoolbell&display=swap');
+
+:root {
+  --paper-color: #f5f5f0;
+  --paper-line: #e8e8e8;
+  --ink-color: #333;
+  --red-ink: #c00;
+  --shadow-color: rgba(0, 0, 0, 0.2);
+  --margin-color: #f0e6cc;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+
+  background-color: #e0d6c2;
+  /* background-image: linear-gradient(90deg, #e0d6c2 0%, #cf910a 100%); */
+    /* background-color: #e5e5f7;
+    opacity: 0.4;
+    background-size: 16px 16px; */
+    background-image:  linear-gradient(#232323 0.8px, transparent 0.8px), linear-gradient(to right, #232323 0.8px, #e5e5f7 0.8px);
+    
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  font-family: 'Schoolbell', cursive;
+}
+
+.container {
+  width: 100%;
+
+  max-width: 800px;
+  padding: 40px 30px 50px;
+  background-color: var(--paper-color);
+  background-image: 
+    linear-gradient(var(--paper-line) 1px, transparent 1px);
+  background-size: 100% 28px;
+  position: relative;
+  box-shadow: 
+    0 2px 10px var(--shadow-color),
+    0 10px 20px var(--shadow-color),
+    inset 0 0 50px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  transform: perspective(1000px) rotateX(0deg) rotateZ(0deg) rotateY(0deg);
+  transition: transform 2s ease, box-shadow 0.5s ease;
+  animation: paperDrop 1s ease-out;
+  overflow: hidden;
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 40px;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--margin-color);
+  border-right: 1px solid #d9d0b5;
+}
+
+.container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255,255,255,0.1) 20%,
+    transparent 40%,
+    rgba(0,0,0,0.03) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+h1 {
+  color: var(--ink-color);
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--paper-line);
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+  position: relative;
+  transform: rotate(-1deg);
+  animation: titleWrite 3s ease-out forwards;
+}
+
+h1::after {
+  content: 'Decode';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  color: var(--red-ink);
+  opacity: 0.3;
+  z-index: -1;
+}
+
+/* Add this to your CSS */
+.file-input-wrapper {
+    position: relative;
+    margin: 0 auto 30px;
+    max-width: 300px;
+    animation: fadeIn 1s ease-out 0.3s both;
+  }
+  
+  .file-input-label {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: var(--paper-color);
+    border: 1px solid #d0d0c0;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--ink-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 
+      0 2px 5px rgba(0,0,0,0.05),
+      inset 0 -1px 3px rgba(0,0,0,0.1);
+    font-family: 'Schoolbell', cursive;
+  }
+  
+  .file-input-label:hover {
+    background-color: #f0f0e0;
+    transform: translateY(-2px);
+    box-shadow: 
+      0 4px 8px rgba(0,0,0,0.1),
+      inset 0 -1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .file-input-label::before {
+    content: '📄 ';
+    margin-right: 8px;
+  }
+  
+  .file-input-filename {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  
+  #decodeImageInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+  animation: fadeIn 1s ease-out 0.6s both;
+}
+
+button {
+  padding: 12px 25px;
+  background-color: var(--paper-color);
+  border: 1px solid #d0d0c0;
+  border-radius: 3px;
+  font-family: 'Schoolbell', cursive;
+  font-size: 1.3rem;
+  color: var(--ink-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 
+    0 2px 5px rgba(0,0,0,0.05),
+    inset 0 -2px 5px rgba(0,0,0,0.05);
+  transform-style: preserve-3d;
+}
+
+button:hover {
+  background-color: #f0f0e0;
+  transform: translateY(-2px) rotate(0.5deg);
+  box-shadow: 
+    0 4px 8px rgba(0,0,0,0.1),
+    inset 0 -2px 5px rgba(0,0,0,0.05);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+#playAudioButton {
+  background-color: #e8f5e9;
+  border-color: #c8e6c9;
+}
+
+#downloadAudioButton {
+  background-color: #e3f2fd;
+  border-color: #bbdefb;
+}
+
+#audioPlayer {
+  width: 100%;
+  margin-top: 20px;
+  background-color: var(--paper-color);
+  border: 1px solid #d0d0c0;
+  border-radius: 4px;
+  box-shadow: 
+    inset 0 1px 3px rgba(0,0,0,0.1),
+    0 2px 5px rgba(0,0,0,0.05);
+  animation: fadeIn 1s ease-out 0.9s both;
+}
+
+/* Ink blots decoration */
+.ink-blot {
+  position: absolute;
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.ink-blot:nth-child(1) {
+  top: 15%;
+  right: 10%;
+  width: 40px;
+  height: 40px;
+  background-color: var(--red-ink);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform: rotate(20deg);
+}
+
+.ink-blot:nth-child(2) {
+  bottom: 20%;
+  left: 15%;
+  width: 30px;
+  height: 30px;
+  background-color: var(--ink-color);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform: rotate(-10deg);
+}
+
+/* Animations */
+@keyframes paperDrop {
+  0% {
+    transform: perspective(1000px) rotateX(60deg) translateY(-100px);
+    opacity: 0;
+    box-shadow: 0 50px 100px rgba(0,0,0,0.3);
+  }
+  100% {
+    transform: perspective(1000px) rotateX(0deg) translateY(0);
+    opacity: 1;
+    box-shadow: 0 2px 10px var(--shadow-color);
+  }
+}
+
+@keyframes titleWrite {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 30px 20px 40px;
+    background-size: 100% 24px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 25px;
+  }
+  
+  .file-input-label {
+    padding: 10px 15px;
+    font-size: 1rem;
+  }
+  
+  button {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 25px 15px 35px;
+    background-size: 100% 20px;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .container::before {
+    left: 30px;
+  }
+  
+  .file-input-label {
+    max-width: 100%;
+  }
+  
+  .button-group {
+    gap: 10px;
+  }
+}

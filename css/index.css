@@ -1,0 +1,177 @@
+/* css/index.css */
+:root {
+    --primary-color: rgba(32, 32, 36, 0.8);
+    --secondary-color: rgba(225, 98, 249, 0.8);
+    --dark-color: rgba(30, 30, 40, 0.9);
+    --light-color: rgba(255, 255, 255, 0.8);
+    --blur: 12px;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  body {
+    min-height: 100vh;
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    /* background-image: radial-gradient( circle farthest-corner at -4.1% 49.8%,  rgba(247,127,127,1) 0%, rgba(255,175,90,1) 20.8%, rgba(151,255,114,1) 43.8%, rgba(149,251,255,1) 65.2%, rgba(147,145,255,1) 84.3%, rgba(255,147,248,1) 100.2% ); */
+    display: flex;
+    background: linear-gradient(to right, #fc466b, #3f5efb); 
+    /* background-image: linear-gradient( 109.6deg,  rgba(247,253,166,1) 11.2%, rgba(128,255,221,1) 57.8%, rgba(255,128,249,1) 85.9% ); */
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 800px;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: var(--shadow);
+    text-align: center;
+    transform: translateY(0);
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  
+  
+  .container:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  }
+  
+  h1 {
+    color: white;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: inline-block;
+  }
+  
+  h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background: white;
+    border-radius: 3px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  button {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 20px auto;
+    padding: 15px 25px;
+    border: none;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    /* backdrop-filter: 2px; */
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+  }
+  
+  button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  button:hover::before {
+    left: 100%;
+  }
+  
+  button:nth-child(2) {
+    background-image: linear-gradient( 109.6deg,  rgba(112,246,255,0.33) 11.2%, rgba(221,108,241,0.26) 42%, rgba(229,106,253,0.71) 71.5%, rgba(123,183,253,1) 100.2% );
+    /* background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); */
+  }
+  
+  button:nth-child(3) {
+    /* background-image: radial-gradient( circle 986.6px at 10% 20%,  rgba(251,6,6,0.94) 0%, rgba(3,31,213,1) 82.8%, rgba(248,101,248,1) 87.9% ); */
+    background: linear-gradient(45deg, transparent, #ff086f);
+  }
+  
+  button:nth-child(4) {
+    background-image: linear-gradient( 107deg,  rgba(2,108,223,1) 27.4%, rgba(0,255,255,1) 92.7% );
+    /* background: linear-gradient(45deg, #4facfe, #00f2fe); */
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-15px);
+    }
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .container {
+      padding: 30px 20px;
+      border-radius: 15px;
+    }
+    
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 30px;
+    }
+    
+    button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      max-width: 250px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .container {
+      padding: 25px 15px;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+    }
+    
+    button {
+      padding: 10px 15px;
+      font-size: 0.9rem;
+      max-width: 220px;
+    }
+  }
