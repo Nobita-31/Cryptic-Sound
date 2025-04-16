@@ -350,6 +350,8 @@
         #downloadLink {
             display: none;
            padding: 12px;
+            
+        text-underline-offset: none;
         margin-bottom: 20px;
         background: linear-gradient(
           135deg,
@@ -389,10 +391,15 @@
       }
   
         #downloadLink:hover {
-          background: #ffffff;
-          color: #ff5e62;
-          box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-        }
+        transform: translateY(-3px);
+        background: linear-gradient(
+          135deg,
+          rgba(0, 102, 255, 0.5),
+          rgba(125, 0, 255, 0.5)
+        );
+        box-shadow: 0 0 25px rgba(0, 102, 255, 0.5),
+          inset 0 0 15px rgba(0, 102, 255, 0.3);
+      }
   
         #videoPreview,
         #captureCanvas {
