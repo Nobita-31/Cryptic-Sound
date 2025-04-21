@@ -410,7 +410,30 @@
           margin-top: 10px;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
-      
+
+
+         #imageSizeDiv{
+        position: relative;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      #imageSize {
+        display: inline-block;
+        /* margin: 15px 0; */
+        /* padding: 10px 20px; */
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        color: #fcfcfc;
+        font-size: 1.1rem;
+        font-weight: 600;
+        font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+          "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11);
+      }
     </style>
 </head>
 <body>
@@ -570,6 +593,42 @@
               console.log("[DEBUG] Image set in file input");
           }, "image/png");
       });
+
+         document
+        .getElementById("audioInput")
+        .addEventListener("change", function (e) {
+          const audioFile = e.target.files[0];
+          document.getElementById("audioLabel").innerText = audioFile.name;
+
+          // Calculate required image size
+          calculateRequiredImageSize(audioFile);
+        });
+
+      async function calculateRequiredImageSize(audioFile) {
+        const audioArrayBuffer = await audioFile.arrayBuffer();
+        const audioData = new Uint8Array(audioArrayBuffer);
+        const audioSizeBytes = audioData.length;
+
+        // Each pixel can store 3 bits (using RGB channels, 1 bit per channel)
+        // We need 8 pixels to store 3 bytes (24 bits) for the audio size header
+        // Then we need (audioSizeBytes * 8) bits for the actual audio data
+        const totalBitsNeeded = 24 + audioSizeBytes * 8;
+        const totalPixelsNeeded = Math.ceil(totalBitsNeeded / 3);
+
+        // Calculate minimum image dimensions (square image for simplicity)
+        const sideLength = Math.ceil(Math.sqrt(totalPixelsNeeded));
+
+        // Update the label
+        document.getElementById(
+          "imageSize"
+        ).innerText = `Required Image Size: ${sideLength}x${sideLength}px`;
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + " bytes";
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+        else return (bytes / 1048576).toFixed(1) + " MB";
+      }
 
       // Encode Audio Button
       document.getElementById("encodeAudioButton").addEventListener("click", async () => {
